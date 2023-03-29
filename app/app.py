@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import os
 import typing
 from flask import Flask, redirect, url_for, render_template
@@ -77,7 +78,7 @@ def __setup_admin(app: Flask) -> None:
     from flask_login import current_user
     from flask_admin import AdminIndexView
     from flask_admin.contrib.sqla import ModelView
-    from flaskr.model import User
+    from app.model import User, ChatGPTKey
 
     class AuthAdminIndexView(AdminIndexView):
 
@@ -106,6 +107,7 @@ def __setup_admin(app: Flask) -> None:
     )
 
     admin.add_view(AuthModelView(User, db.session))
+    admin.add_view(AuthModelView(ChatGPTKey, db.session))
 
 
 def __setup_blueprint(app: Flask) -> None:
@@ -118,8 +120,6 @@ def __setup_blueprint(app: Flask) -> None:
     app.register_blueprint(auth.bp)
     # login
     login_manager.init_app(app=app)
-
-    # app.route("/XdYC2lwTuv.txt")(lambda: render_template("XdYC2lwTuv.txt"))
 
     @app.get("/admin/")
     def admin_index():
@@ -142,20 +142,12 @@ def __setup_blueprint(app: Flask) -> None:
             if admin:
                 print(f"admin user already exists {admin}")
                 return
-            mobilephone = app.config["ADMIN_USER_MOBILEPHONE"]
             name = "admin"
             email = app.config["ADMIN_USER_EMAIL"]
             password = app.config["ADMIN_USER_PASSWORD"]
             new_password = User.transform_password(password)
-            print(
-                f"will create user {name} with phone {mobilephone} password {password}"
-            )
-            admin = User(
-                mobilephone=mobilephone,
-                name=name,
-                email=email,
-                password=new_password
-            )
+            print(f"will create user {name} with password {password}")
+            admin = User(email=email, password=new_password)
             admin.identifier = admin_identifier
             db.session.add(admin)
             db.session.commit()
@@ -166,17 +158,17 @@ def __setup_blueprint(app: Flask) -> None:
 def __setup_login_manager(app: Flask) -> None:
     # login
     from flask import Request
-    from flaskr.model import User
+    from app.model import User
 
     @login_manager.unauthorized_handler
     def register_unauthorized():
         print(f"unauthorized")
-        return { "code": 401, "msg": "认证错误, 请重新登录", "data": None}
+        return {"code": 401, "msg": "认证错误, 请重新登录", "data": None}
 
     @login_manager.request_loader
     def load_user_from_request(request: Request) -> typing.Optional['User']:
         # first, try to login using the api_key url arg
-        from flaskr.model import User
+        from app.model import User
 
         # next, try to login using Basic Auth
         api_key = request.headers.get('Authorization')
@@ -185,7 +177,8 @@ def __setup_login_manager(app: Flask) -> None:
             return None
         token = api_key.replace('Token ', '', 1).strip()
 
-        user = User.query.filter_by(token=token).first()
+        user: typing.Optional['User'] = User.query.filter_by(token=token
+                                                            ).first()
         if not user:
             print(f"token {token} not found")
             return None

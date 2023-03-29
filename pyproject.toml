@@ -4,8 +4,14 @@ version = "0.1.0"
 description = ""
 authors = ["treee <2332532718@qq.com>"]
 
+# [[tool.poetry.source]]
+# name = "tuna"
+# url = "https://pypi.tuna.tsinghua.edu.cn/simple"
+# default = true
+
+
 [tool.poetry.dependencies]
-python = "^3.10"
+python = "^3.9"
 Flask = "^2.2.3"
 Flask-Login = "^0.6.2"
 Flask-Admin = "^1.6.1"
@@ -15,9 +21,60 @@ Flask-Migrate = "^4.0.4"
 passlib = "^1.7.4"
 requests = "^2.28.2"
 flask-limiter = "^3.3.0"
+openai = "^0.27.2"
 
 [tool.poetry.dev-dependencies]
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.2.2"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
+
+
+[tool.isort]
+line_length = 100
+
+[tool.yapf]
+based_on_style = "google"
+column_limit = 79
+blank_line_before_nested_class_or_def = true
+dedent_closing_brackets = true
+coalesce_brackets = false
+spaces_before_comment = 4
+split_before_logical_operator = true
+allow_multiline_dictionary_keys = false
+allow_split_before_dict_value = false
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+testpaths = [
+    "tests",
+]
+filterwarnings = [
+    "error",
+    "ignore::DeprecationWarning",
+    "ignore::ResourceWarning",
+]
+
+[tool.pyright]
+
+reportPrivateUsage = "none"
+reportUnusedClass = "none"
+reportUnusedFunction = "none"
+reportTypedDictNotRequiredAccess = "warning"
+
+# 全局配置
+[tool.mypy]
+python_version = "3.9"
+warn_return_any = true
+warn_unused_configs = true
+ignore_missing_imports = true
+exclude = [
+    '^.venv\.py$',
+]
+
+[[tool.mypy.overrides]]
+module = "app"
+warn_return_any = false

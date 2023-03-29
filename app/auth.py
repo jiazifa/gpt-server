@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import typing
 from flask import request, Blueprint, redirect, url_for, render_template
 from app.ext import login_manager, db
@@ -13,21 +14,21 @@ def login():
     params = parse_params(request)
     email = params.get("email")
     if not email:
-        return { "code": 400, "msg": "邮箱不能为空"}
+        return {"code": 400, "msg": "邮箱不能为空"}
     password = params.get("password")
     if not password:
-        return { "code": 400, "msg": "密码不能为空"}
-        
+        return {"code": 400, "msg": "密码不能为空"}
+
     query_options = [User.email == email]
     if password:
         new_password = User.transform_password(password)
         query_options.append(User.password == new_password)
-    
+
     u: typing.Optional[User] = User.query.filter(*query_options).first()
     if not u:
-        return { "code": 400, "msg": "用户名或密码错误"}
+        return {"code": 400, "msg": "用户名或密码错误"}
         # update token
-    new_token: str = User.transform_password(f"{mobilephone}")
+    new_token: str = User.transform_password(f"{email}{get_random_num(6)}")
     u.token = new_token
     info: typing.Dict[str, typing.Any] = u.to_json()
     info.setdefault("token", new_token)
@@ -35,7 +36,7 @@ def login():
     login_user(u)
     db.session.add(u)
     db.session.commit()
-    return { "code": 200, "msg": "登录成功", "data": info}
+    return {"code": 200, "msg": "登录成功", "data": info}
 
 
 @bp.route("/info/", methods=["GET"])
@@ -45,7 +46,7 @@ def info():
 
     """
     user: User = current_user
-    return { "code": 200, "msg": "获取成功", "data": user.to_json()}
+    return {"code": 200, "msg": "获取成功", "data": user.to_json()}
 
 
 @bp.route('/admin_login/', methods=['GET'])
