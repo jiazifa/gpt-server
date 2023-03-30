@@ -11,9 +11,6 @@ ADMIN_USER_MOBILEPHONE = ""
 ADMIN_USER_EMAIL = ""
 ADMIN_USER_PASSWORD = ""
 
-WECHAT_APP_ID = ""
-WECHAT_APP_SECRET = ""
-
 SQLALCHEMY_DATABASE_URI = "sqlite:///" + os.path.join(
     CURRENT_DIR, "data.sqlite"
 )

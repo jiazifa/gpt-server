@@ -138,10 +138,4 @@ def get_recent_chat_records():
 
 
 def init_app(app: Flask):
-    organization = app.config["GPT_ORGANIZATION"]
-    api_key = app.config["GPT_API_KEY"]
-
-    if not organization or not api_key:
-        raise ValueError("GPT_ORGANIZATION and GPT_API_KEY must be set")
-    if organization == "fake_organization" or api_key == "fake_api_key":
-        raise ValueError("GPT_ORGANIZATION and GPT_API_KEY must be set")
+    ...
