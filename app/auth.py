@@ -56,11 +56,10 @@ def admin_login():
 
 @bp.route('/admin_login_form/', methods=['POST'])
 def admin_login_form():
-    mobilephone = request.form['mobilephone']
+    email = request.form['email']
     password = request.form['password']
     new_password = User.transform_password(password)
-    u = User.query.filter_by(mobilephone=mobilephone,
-                             password=new_password).first()
+    u = User.query.filter_by(email=email, password=new_password).first()
     if not u:
         return redirect(url_for('auth.admin_login'))
     login_user(u)

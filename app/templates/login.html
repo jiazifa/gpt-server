@@ -110,10 +110,10 @@
         <form action={{url_for('auth.admin_login_form')}} method="POST">
             <div class="loginBox">
                 <div class="loginBoxCenter">
-                    <p><label for="mobilephone">手机号：</label></p>
+                    <p><label for="email">邮箱：</label></p>
                     <!--autofocus 规定当页面加载时按钮应当自动地获得焦点。 -->
                     <!-- placeholder提供可描述输入字段预期值的提示信息-->
-                    <p><input type="text" name="mobilephone" class="loginInput" required="required" autocomplete="off" placeholder="请输入手机号" /></p>
+                    <p><input type="text" name="email" class="loginInput" required="required" autocomplete="off" placeholder="请输入邮箱" /></p>
                     <!-- required 规定必需在提交之前填写输入字段-->
                     <p><label for="password">密码：</label></p>
                     <p><input type="password" name="password" class="loginInput" required="required" placeholder="请输入密码" value="" /></p>
