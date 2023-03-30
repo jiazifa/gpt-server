@@ -75,11 +75,9 @@ class User(db.Model, UserMixin):
         return new_password
 
     @login_manager.user_loader
-    def user_loader(user_identifier: str) -> typing.Optional["User"]:
-        print(f" user_loader callback: {user_identifier}")
-        user: typing.Optional['User'] = User.query.filter_by(
-            identifier=user_identifier
-        ).first()
+    def user_loader(uid: int) -> typing.Optional["User"]:
+        print(f" user_loader callback: {uid}")
+        user: typing.Optional['User'] = User.query.filter_by(id=uid).first()
         return user
 
 

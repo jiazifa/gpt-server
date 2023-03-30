@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import typing
-from flask import request, Blueprint, redirect, url_for, render_template
+import datetime
+from flask import request, Blueprint, redirect, url_for, render_template, g
 from app.ext import login_manager, db
 from app.utils import get_random_num, parse_params
 from flask_login import login_required, login_user, current_user
@@ -33,7 +34,7 @@ def login():
     info: typing.Dict[str, typing.Any] = u.to_json()
     info.setdefault("token", new_token)
     print(f"server login info: {info}")
-    login_user(u)
+    login_user(u, remember=True, duration=datetime.timedelta(days=15))
     db.session.add(u)
     db.session.commit()
     return {"code": 200, "msg": "登录成功", "data": info}
@@ -59,8 +60,11 @@ def admin_login_form():
     email = request.form['email']
     password = request.form['password']
     new_password = User.transform_password(password)
-    u = User.query.filter_by(email=email, password=new_password).first()
+    u: typing.Optional[User] = User.query.filter_by(
+        email=email, password=new_password
+    ).first()
     if not u:
         return redirect(url_for('auth.admin_login'))
-    login_user(u)
+    login_user(u, remember=True, duration=datetime.timedelta(days=15))
+
     return redirect(url_for('admin.index'))
