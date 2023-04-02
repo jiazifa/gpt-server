@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import datetime
 import random
 import time
@@ -12,7 +13,7 @@ def get_unix_time_tuple(
     get unix time tuple, default `date` is current time
     Args:
         date: datetime, default is datetime.datetime.now()
-        millisecond: if True, Use random three digits instead of milliseconds, default id False 
+        millisecond: if True, Use random three digits instead of milliseconds, default id False
     Return:
         a str type value, return unix time of incoming time
     """
@@ -29,12 +30,13 @@ def parse_params(request: Request) -> typing.Dict[str, typing.Any]:
     Return: 一个解析过的字典对象，如果没有解析出，则返回一个空的字典对象
     """
     params = request.values or request.get_json() or {}
+    print(f"server params: {params}")
     return dict(params)
 
 
 def get_random_num(digit: int = 6) -> str:
     """ get a random num
-    get random num 
+    get random num
     Args:
         digit: digit of the random num, limit (1, 32)
     Return:

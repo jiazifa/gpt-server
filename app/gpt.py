@@ -8,6 +8,7 @@ from flask_login import login_required, current_user
 import openai
 from app.ext import db
 from app.utils import parse_params
+from app.response import response_error, response_succ
 from app.model import ChatRecord, User, Conversation, ChatGPTKey
 
 bp = Blueprint("gpt", __name__, url_prefix="/gpt")
@@ -35,11 +36,11 @@ def create_competion():
     model, max_token, temperature = __get_default_params_from_params(params)
 
     if not messages or len(messages) == 0:
-        return {"code": 400, "msg": "messages is empty", "data": ""}
+        return response_error(error_code=400, msg="messages is empty")
     last_message = messages[-1]
     last_prompt = last_message.get("content")
     if not last_prompt:
-        return {"code": 400, "msg": "prompt is empty", "data": ""}
+        return response_error(error_code=400, msg="prompt is empty")
 
     print(f"询问内容: {last_prompt}")
 
@@ -66,7 +67,7 @@ def create_competion():
             api_key = k.content
 
     if not api_key:
-        return {"code": 400, "msg": "当前服务繁忙，请稍后再试", "data": ""}
+        return response_error(error_code=400, msg="当前服务繁忙，请稍后再试")
 
     prompt_record = ChatRecord(
         user=user,
@@ -93,7 +94,7 @@ def create_competion():
 
             choices = resp["choices"]
             if not choices or len(choices) == 0:
-                return {"code": 400, "msg": "当前服务繁忙，请稍后再试", "data": ""}
+                return response_error(error_code=400, msg="当前服务繁忙，请稍后再试")
             print(f"回答内容: choices: {choices}")
             first_choices: dict = choices[0]
             message: dict = first_choices["message"]
@@ -108,13 +109,13 @@ def create_competion():
         )
         db.session.add(resp_record)
         db.session.commit()
-        return {"code": 200, "msg": "", "data": content_striped}
+        return response_succ(body=content_striped)
     except openai.error.RateLimitError as e:
         print(f"RateLimitError: {e}")
-        return {"code": 400, "msg": "当前服务繁忙，请稍后再试", "data": ""}
+        return response_error(error_code=400, msg="当前服务繁忙，请稍后再试")
     except Exception as e:
         print(f"exception: {e}")
-        return {"code": 400, "msg": "请稍后再试", "data": ""}
+        return response_error(error_code=400, msg="请稍后再试")
     finally:
         api_key.occupy_uid = None
         db.session.commit()
@@ -130,11 +131,7 @@ def get_recent_chat_records():
     records = ChatRecord.get_records_by_user_before_time(
         user_id=user.id, limit=limit, page=page
     )
-    return {
-        "code": 200,
-        "msg": "",
-        "data": [record.to_json() for record in records]
-    }
+    return response_succ(body=[record.to_json() for record in records])
 
 
 def init_app(app: Flask):

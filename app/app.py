@@ -195,7 +195,6 @@ def create_app(
     app.config.from_pyfile("config.py", silent=False)
     if test_config:
         app.config.from_mapping(test_config)
-
     __config_database(app=app)
     __setup_admin(app=app)
     __setup_blueprint(app=app)

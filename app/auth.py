@@ -4,21 +4,44 @@ import datetime
 from flask import request, Blueprint, redirect, url_for, render_template, g
 from app.ext import login_manager, db
 from app.utils import get_random_num, parse_params
-from flask_login import login_required, login_user, current_user
+from flask_login import login_required, login_user, logout_user, current_user
 from app.model import User
+from app.response import response_succ, response_error
 
 bp = Blueprint("auth", __name__, url_prefix="/auth")
 
 
+@bp.route("/logout/", methods=["GET", "POST"])
+def logout():
+    """登出接口
+
+    """
+    logout_user()
+    print(f"server logout info: {current_user}")
+    return response_succ(body={"content": "Your logout"})
+
+
+@bp.route("/uid/", methods=["GET", "POST"])
+def uid():
+    return response_succ(
+        body={
+            "uid": get_random_num(6),
+            'method': request.method
+        }
+    )
+
+
 @bp.route("/login/", methods=["POST"])
 def login():
+    """登录接口
+    """
     params = parse_params(request)
     email = params.get("email")
     if not email:
-        return {"code": 400, "msg": "邮箱不能为空"}
+        return response_error(error_code=400, msg='邮箱不能为空')
     password = params.get("password")
     if not password:
-        return {"code": 400, "msg": "密码不能为空"}
+        return response_error(error_code=400, msg="密码不能为空")
 
     query_options = [User.email == email]
     if password:
@@ -27,7 +50,7 @@ def login():
 
     u: typing.Optional[User] = User.query.filter(*query_options).first()
     if not u:
-        return {"code": 400, "msg": "用户名或密码错误"}
+        return response_error(error_code=400, msg="用户名或密码错误")
         # update token
     new_token: str = User.transform_password(f"{email}{get_random_num(6)}")
     u.token = new_token
@@ -37,7 +60,7 @@ def login():
     login_user(u, remember=True, duration=datetime.timedelta(days=15))
     db.session.add(u)
     db.session.commit()
-    return {"code": 200, "msg": "登录成功", "data": info}
+    return response_succ(body=info)
 
 
 @bp.route("/info/", methods=["GET"])
@@ -47,7 +70,7 @@ def info():
 
     """
     user: User = current_user
-    return {"code": 200, "msg": "获取成功", "data": user.to_json()}
+    return response_succ(body=user.to_json())
 
 
 @bp.route('/admin_login/', methods=['GET'])
