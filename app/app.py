@@ -75,6 +75,7 @@ def __config_database(app: Flask) -> None:
 def __setup_admin(app: Flask) -> None:
     # admin
     from flask import redirect, url_for, current_app
+    from flask_login import current_user
     from flask_admin import AdminIndexView
     from flask_admin.contrib.sqla import ModelView
     from app.model import User, ChatGPTKey
@@ -82,7 +83,7 @@ def __setup_admin(app: Flask) -> None:
     class AuthAdminIndexView(AdminIndexView):
 
         def is_accessible(self):
-            from flask_login import current_user
+
             return current_user.is_authenticated and current_user.identifier == current_app.config[
                 "ADMIN_USER_IDENTIFIER"]
 
@@ -92,7 +93,6 @@ def __setup_admin(app: Flask) -> None:
     class AuthModelView(ModelView):
 
         def is_accessible(self):
-            from flask_login import current_user
             return current_user.is_authenticated and current_user.identifier == current_app.config[
                 "ADMIN_USER_IDENTIFIER"]
 
@@ -195,6 +195,19 @@ def create_app(
     app.config.from_pyfile("config.py", silent=False)
     if test_config:
         app.config.from_mapping(test_config)
+    from flask_cors import CORS
+    CORS(app, supports_credentials=True)
+    # CORS Headers
+    @app.after_request
+    def after_request(response):
+        response.headers.add(
+            'Access-Control-Allow-Headers', 'Content-Type,Authorization,true'
+        )
+        response.headers.add(
+            'Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS'
+        )
+        return response
+
     __config_database(app=app)
     __setup_admin(app=app)
     __setup_blueprint(app=app)
