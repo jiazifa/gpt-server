@@ -109,7 +109,12 @@ def create_competion():
         )
         db.session.add(resp_record)
         db.session.commit()
-        return response_succ(body=content_striped)
+        return response_succ(
+            body={
+                "conversation": conversation.identifier,
+                "content": content_striped,
+            }
+        )
     except openai.error.RateLimitError as e:
         print(f"RateLimitError: {e}")
         return response_error(error_code=400, msg="当前服务繁忙，请稍后再试")

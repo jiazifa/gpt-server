@@ -123,11 +123,12 @@ def response_error(
     """
     from flask import request as r
 
-    # error_codes = [400, 401, 402, 403, 404, 406, 410, 500]
-    error_codes = set([200])
+    error_codes = [400, 401, 402, 403, 404, 406, 410, 500]
+    # error_codes = [200]
+    http_code = 200
     if msg is None:
         raise ValueError("error Msg can't be None")
-    if msg and http_code not in error_codes:
+    if msg and (error_code not in error_codes):
         raise ValueError("error and errorCode can't both exists")
     if header is None:
         header = {
