@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
 import os
 import typing
-from flask import Flask, redirect, url_for, render_template
+from flask import Flask, redirect, url_for
 from flask.cli import AppGroup
 from flask_admin import Admin
 from flask_migrate import Migrate
 
+from app.response import response_error
 from app.ext import login_manager, db
 
 __all__ = ["create_app"]
@@ -163,7 +164,7 @@ def __setup_login_manager(app: Flask) -> None:
     @login_manager.unauthorized_handler
     def register_unauthorized():
         print(f"unauthorized")
-        return {"code": 401, "msg": "认证错误, 请重新登录", "data": None}
+        return response_error(error_code=401, msg="认证错误, 请重新登录")
 
     @login_manager.request_loader
     def load_user_from_request(request: Request) -> typing.Optional['User']:
