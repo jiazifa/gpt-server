@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import typing
+import datetime
 from flask import Request
 from sqlalchemy import Column, Sequence
 from sqlalchemy import SMALLINT
@@ -188,6 +189,53 @@ class ChatRecord(db.Model):
         }
         return payload
 
+class ChatAuth(db.Model):
+    __tablename__ = "chat_auth"
+    
+    auth_id = Column(
+        db.Integer,
+        Sequence("auth_id_seq", start=1, increment=1),
+        primary_key=True
+    )
+    user_idf = Column(db.String(32), nullable=False, comment="用户标识符")
+    began_at = Column(db.Integer, nullable=False, comment="开始时间")
+    end_at = Column(db.Integer, nullable=False, comment="结束时间")
+    
+    @staticmethod
+    def auth_by_endtime(user_idf: str, endtime: typing.Union[datetime.datetime, int]) -> "ChatAuth":
+        end_at = int(get_unix_time_tuple(millisecond=True))
+        if isinstance(endtime, datetime.datetime):
+            end_at = get_unix_time_tuple(date=endtime, millisecond=True)
+        elif isinstance(endtime, int):
+            end_at = endtime
+        else:
+            raise TypeError("endtime must be datetime.datetime or int")
+        auth = ChatAuth.get_auth_by_user_idf(user_idf)
+        if auth:
+            auth.end_at = end_at
+            db.session.commit()
+        else:
+            auth = ChatAuth(user_idf=user_idf, began_at=get_unix_time_tuple(millisecond=True), end_at=end_at)
+            db.session.add(auth)
+            db.session.commit()
+        return auth
+    
+    @staticmethod
+    def get_auth_by_user_idf(user_idf: str) -> typing.Optional["ChatAuth"]:
+        return ChatAuth.query.filter_by(user_idf=user_idf).first()
+        
+    def get_auth_time(self) -> typing.Tuple[int, int]:
+        return(self.began_at, self.end_at)
+    
+    def is_auth(self) -> bool:
+        now = int(get_unix_time_tuple(millisecond=True))
+        if now > int(self.end_at):
+            return False
+        if now < int(self.began_at):
+            return False
+        return True
+    
+        
 
 class ChatGPTKey(db.Model):
     """ 聊天GPT的key

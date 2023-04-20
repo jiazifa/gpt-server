@@ -7,9 +7,9 @@ from flask import Flask, Blueprint, current_app, request
 from flask_login import login_required, current_user
 import openai
 from app.ext import db
-from app.utils import parse_params
+from app.utils import parse_params, get_unix_time_tuple
 from app.response import response_error, response_succ
-from app.model import ChatRecord, User, Conversation, ChatGPTKey
+from app.model import ChatRecord, User, Conversation, ChatGPTKey, ChatAuth
 
 bp = Blueprint("gpt", __name__, url_prefix="/gpt")
 
@@ -138,6 +138,36 @@ def get_recent_chat_records():
     )
     return response_succ(body=[record.to_json() for record in records])
 
+@bp.route("/api_key/", methods=["POST"])
+@login_required
+def get_key():
+    user: User = current_user
+    print(f"get_key: {user}, {user.identifier}")
+    auth = ChatAuth.get_auth_by_user_idf(user_idf=user.identifier)
+    if not auth:
+        return response_error(error_code=401, msg="请联系管理员授权")
+    
+    if not auth.is_auth():
+        return response_error(error_code=402, msg="有效期已过，请联系管理员授权")
+    
+    (began_at, end_at) = auth.get_auth_time()
+    print(f"began_at: {began_at}, end_at: {end_at}")
+    return response_succ(body={
+        "api_key": current_app.config["GPT_API_KEY"], 
+        "began_at": began_at, 
+        "end_at": end_at
+    })
+
+@bp.route("/auth/", methods=["GET"])
+def gpt_auth():
+    import datetime
+    params = parse_params(request)
+    idf = params.get("idf")
+    auth = ChatAuth.auth_by_endtime(user_idf=idf, endtime=datetime.datetime.now() + datetime.timedelta(days=1))
+    db.session.add(auth)
+    db.session.commit()
+    return response_succ(body={"auth_idf": idf})
+    
 
 def init_app(app: Flask):
     ...
