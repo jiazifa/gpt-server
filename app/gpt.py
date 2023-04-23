@@ -145,25 +145,44 @@ def get_key():
     print(f"get_key: {user}, {user.identifier}")
     auth = ChatAuth.get_auth_by_user_idf(user_idf=user.identifier)
     if not auth:
-        return response_error(error_code=401, msg="请联系管理员授权")
+        return response_error(error_code=411, msg="请联系管理员授权")
     
     if not auth.is_auth():
-        return response_error(error_code=402, msg="有效期已过，请联系管理员授权")
+        return response_error(error_code=412, msg="有效期已过，请联系管理员授权")
     
     (began_at, end_at) = auth.get_auth_time()
     print(f"began_at: {began_at}, end_at: {end_at}")
     return response_succ(body={
-        "api_key": current_app.config["GPT_API_KEY"], 
+        "api_key": current_app.config["GPT_API_KEY"]
+    })
+    
+@bp.route("/auth_timerange/", methods=["POST"])
+@login_required
+def get_time_range():
+    user: User = current_user
+    print(f"get_key: {user}, {user.identifier}")
+    auth = ChatAuth.get_auth_by_user_idf(user_idf=user.identifier)
+    if not auth:
+        return response_error(error_code=411, msg="请联系管理员授权")
+    
+    if not auth.is_auth():
+        return response_error(error_code=412, msg="有效期已过，请联系管理员授权")
+    
+    (began_at, end_at) = auth.get_auth_time()
+    print(f"began_at: {began_at}, end_at: {end_at}")
+    return response_succ(body={
         "began_at": began_at, 
         "end_at": end_at
     })
+        
 
 @bp.route("/auth/", methods=["GET"])
 def gpt_auth():
     import datetime
     params = parse_params(request)
     idf = params.get("idf")
-    auth = ChatAuth.auth_by_endtime(user_idf=idf, endtime=datetime.datetime.now() + datetime.timedelta(days=1))
+    days = params.get("days", 1)
+    auth = ChatAuth.auth_by_endtime(user_idf=idf, endtime=datetime.datetime.now() + datetime.timedelta(days=days))
     db.session.add(auth)
     db.session.commit()
     return response_succ(body={"auth_idf": idf})

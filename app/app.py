@@ -164,7 +164,7 @@ def __setup_login_manager(app: Flask) -> None:
     @login_manager.unauthorized_handler
     def register_unauthorized():
         print(f"unauthorized")
-        return response_error(error_code=401, msg="认证错误, 请重新登录")
+        return response_error(error_code=410, msg="认证错误, 请重新登录")
 
     @login_manager.request_loader
     def load_user_from_request(request: Request) -> typing.Optional['User']:

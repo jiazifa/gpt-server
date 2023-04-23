@@ -123,7 +123,7 @@ def response_error(
     """
     from flask import request as r
 
-    error_codes = [400, 401, 402, 403, 404, 406, 410, 500]
+    error_codes = [400, 401, 402, 403, 404, 406, 410, 411, 412, 413, 500]
     # error_codes = [200]
     http_code = 200
     if msg is None:
